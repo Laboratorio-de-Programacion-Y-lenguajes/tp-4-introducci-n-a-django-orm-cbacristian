@@ -94,17 +94,17 @@ class Prestamo(models.Model):
     Registro de un préstamo de libro a un usuario.
     Si fecha_devolucion es NULL → el préstamo está activo.
     """
-
-    # TODO: implementar los campos:
-    # libro              → ForeignKey(Libro, on_delete=models.CASCADE)
-    # nombre_prestatario → CharField
-    # fecha_prestamo     → DateField
-    # fecha_devolucion   → DateField (null=True, blank=True)
-    #
-    # Preguntas guía:
-    # ¿Por qué usamos CASCADE aquí y PROTECT en Libro→Autor?
-    # ¿Qué valor por defecto tendría sentido para fecha_prestamo?
-    # Tip: podés usar default=timezone.now si querés fecha automática,
-    #      o dejarlo sin default para que el test lo defina explícitamente.
-
+    # Relación con Libro: un préstamo pertenece a un libro
+    libro = models.ForeignKey(Libro, on_delete=models.CASCADE,related_name='prestamo_set')
+    # Nombre de la persona que toma prestado el libro
+    nombre_prestatario = models.CharField(max_length=200)
+    # Fecha en que se realizó el préstamo
+    fecha_prestamo = models.DateField()
+    # Fecha de devolución (NULL si el préstamo está activo)
+    fecha_devolucion = models.DateField(null=True, blank=True)
     pass
+
+    def __str__(self) -> str:
+        """Retorna información del préstamo para identificación."""
+        estado = "Activo" if self.fecha_devolucion is None else "Devuelto"
+        return f"{self.libro.titulo} - {self.nombre_prestatario} ({estado})"

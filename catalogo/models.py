@@ -40,44 +40,53 @@ class Libro(models.Model):
     Libro del catálogo de la biblioteca.
     Tiene relación N:1 con Autor y N:M con Categoria.
     """
+    # Campo título: nombre del libro
+    titulo = models.CharField(max_length=200)
 
-    # TODO: implementar los campos:
-    # titulo          → CharField
-    # isbn            → CharField (unique=True)
-    # fecha_publicacion → DateField
-    # cantidad_total  → PositiveIntegerField
-    # autor           → ForeignKey(Autor, on_delete=models.PROTECT)
-    # categorias      → ManyToManyField(Categoria)
-    #
-    # Preguntas guía:
-    # ¿Qué pasa si eliminás un autor que tiene libros? (PROTECT vs CASCADE)
-    # ¿Por qué isbn debe ser único?
+    # Campo ISBN: código único internacional del libro, nunca se repite
+    isbn = models.CharField(max_length=13, unique=True)
 
+    # Campo fecha de publicación
+    fecha_publicacion = models.DateField()
+
+    # Campo cantidad total: número de copias disponibles, solamente números positivos
+    cantidad_total = models.PositiveIntegerField()
+
+    # Relación N:1 con Autor (un libro tiene un autor), on_delete=models.PROTECT para evitar borrar un autor si tiene libros relacionados.
+    autor = models.ForeignKey(Autor, on_delete=models.PROTECT, related_name='libros')
+
+    # Relación N:M con Categoria (un libro puede tener múltiples categorías) "related_name" permite acceder a los libros desde la categoría
+    categorias = models.ManyToManyField(Categoria, related_name='libros')
     pass
+
+    def __str__(self) -> str:
+        """Retorna título y autor para identificación del libro."""
+        return f"{self.titulo} - {self.autor.nombre}"
 
     def prestamos_activos(self) -> int:
         """
         Retorna la cantidad de préstamos activos (fecha_devolucion IS NULL).
-
         Un préstamo es "activo" cuando no se ha registrado devolución.
         """
-        # TODO: implementar con ORM usando filter sobre los préstamos relacionados
-        # Pista: self.prestamo_set.filter(fecha_devolucion__isnull=True).count()
-        #        (o el related_name que hayas definido en Prestamo.libro)
-        raise NotImplementedError
+        # self.prestamo_set es el administrador relacionado que Django crea automáticamente para la relación inversa desde Prestamo hacia Libro, es equivalente a Prestamo.objects.filter(libro=self), .count() devuelve la cantidad de objetos en el QuerySet resultante.
+        return self.prestamo_set.filter(fecha_devolucion__isnull=True).count()
 
     def disponibles(self) -> int:
         """
         Retorna cuántas copias están disponibles:
         cantidad_total - prestamos_activos()
         """
-        # TODO: implementar
-        raise NotImplementedError
+        # Llamamos al método prestamos_activos() definido en este mismo modelo.
+        # Ese método ya usa ORM para contar préstamos sin fecha de devolución.
+        prestamos_activos = self.prestamos_activos()
+        return self.cantidad_total - prestamos_activos
 
     def tiene_disponibles(self) -> bool:
         """Retorna True si hay al menos una copia disponible."""
-        # TODO: implementar
-        raise NotImplementedError
+        # Reutilizamos el método disponibles() que ya usa ORM para calcular
+        # la cantidad de copias disponibles (cantidad_total - prestamos_activos)
+        # Si el resultado es mayor que 0, significa que hay copias disponibles
+        return self.disponibles() > 0
 
 
 class Prestamo(models.Model):

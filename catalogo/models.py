@@ -9,14 +9,12 @@ class Autor(models.Model):
     Representa a un autor/a.
     Requerido: nombre, email único, biografía opcional.
     """
-    # TODO: implementar los campos del modelo
     # nombre   → CharField (max_length a elección)
     nombre =models.CharField(max_length=120)
     # email    → EmailField (unique=True)
     email = models.EmailField(unique = True)
     # biografia → TextField (blank=True para hacerlo opcional)
     biografia = models.TextField(blank=True, null=True)
-
     pass
 
     # Opcional: definir __str__ para que sea legible en el admin y en el shell
@@ -28,13 +26,13 @@ class Categoria(models.Model):
     Categoría temática de libros.
     Ejemplos: 'fantasía', 'ciencia ficción', 'historia'.
     """
-
-    # TODO: implementar el campo nombre (unique=True)
-
+    # Campo nombre: único para evitar categorías duplicadas
+    nombre = models.CharField(max_length=100, unique=True)
     pass
 
-    # def __str__(self) -> str:
-    #     return self.nombre
+    def __str__(self) -> str:
+        """Retorna el nombre de la categoría para mostrar en admin y shell."""
+        return self.nombre
 
 
 class Libro(models.Model):

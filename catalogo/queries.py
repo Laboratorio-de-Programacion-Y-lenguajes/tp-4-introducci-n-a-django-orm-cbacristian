@@ -67,7 +67,7 @@ def libros_sin_disponibilidad():
     # Annotate agrega una columna temporal 'activos' con el conteo de préstamos activos por libro.
     # El filtro Q limita ese conteo solo a préstamos con fecha_devolucion NULL.
     libros = Libro.objects.annotate(
-        activos=Count("prestamo", filter=Q(prestamo__fecha_devolucion__isnull=True))
+        activos=Count("prestamo_set", filter=Q(prestamo_set__fecha_devolucion__isnull=True))
     )
 
     # Filter compara el conteo de préstamos activos con la cantidad_total de cada libro.
@@ -88,5 +88,12 @@ def top_n_libros_mas_prestados(n: int):
         Libro.objects.annotate(total_prestamos=Count("prestamo"))
                      .order_by("-total_prestamos")[:n]
     """
-    # TODO: implementar con annotate + order_by + slicing
-    raise NotImplementedError
+    # Annotate agrega una columna temporal total_prestamos con el conteo
+    # de préstamos relacionados a cada libro.
+    libros = Libro.objects.annotate(total_prestamos=Count("prestamo_set"))
+
+    # Order_by ordena los libros de mayor a menor según ese conteo.
+    libros_ordenados = libros.order_by("-total_prestamos")
+
+    # Slicing limita el QuerySet a los primeros n libros.
+    return libros_ordenados[:n]

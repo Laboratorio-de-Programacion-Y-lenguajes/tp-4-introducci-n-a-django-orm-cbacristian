@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from django.db.models import Count, Q
+from django.db.models import Count, F, Q
 
 from .models import Autor, Libro
 
@@ -64,8 +64,14 @@ def libros_sin_disponibilidad():
             activos=Count("prestamo", filter=Q(prestamo__fecha_devolucion__isnull=True))
         ).filter(activos=models.F("cantidad_total"))
     """
-    # TODO: implementar con annotate + F expression + filter
-    raise NotImplementedError
+    # Annotate agrega una columna temporal 'activos' con el conteo de préstamos activos por libro.
+    # El filtro Q limita ese conteo solo a préstamos con fecha_devolucion NULL.
+    libros = Libro.objects.annotate(
+        activos=Count("prestamo", filter=Q(prestamo__fecha_devolucion__isnull=True))
+    )
+
+    # Filter compara el conteo de préstamos activos con la cantidad_total de cada libro.
+    return libros.filter(activos=F("cantidad_total"))
 
 
 def top_n_libros_mas_prestados(n: int):

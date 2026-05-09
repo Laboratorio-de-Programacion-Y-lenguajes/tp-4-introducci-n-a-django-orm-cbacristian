@@ -40,12 +40,12 @@ def autores_con_mas_de_n_libros(n: int):
         autores = autores_con_mas_de_n_libros(1)
         # devuelve autores con 2 o más libros
     """
-    # TODO: implementar con annotate + filter
-    # Pista 1: usá annotate para agregar una columna con la cantidad de libros
-    #   Autor.objects.annotate(cantidad_libros=Count("libro"))
-    # Pista 2: luego filtrá
-    #   .filter(cantidad_libros__gt=n)
-    raise NotImplementedError
+    # Annotate agrega un campo temporal a cada Autor con el conteo de libros relacionados.
+    # Usamos el related_name 'libros' definido en Autor dentro de Libro.
+    autores = Autor.objects.annotate(cantidad_libros=Count("libros"))
+
+    # Filter selecciona solo los autores cuyo conteo es mayor que n.
+    return autores.filter(cantidad_libros__gt=n)
 
 
 def libros_sin_disponibilidad():
